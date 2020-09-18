@@ -80,4 +80,39 @@ public class MergeSortTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void integerDescendingTestWithSomeProblemsInFile(){
+        String[] args = {"-d", "-i",
+                "src/main/resources/testOut2.txt",
+                "src/main/resources/testIn.txt",
+                "src/main/resources/testIn2.txt",
+                "src/main/resources/testIn3Problem.txt"};
+        ArgsParser param = new ArgsParser(args);
+        assert (!param.isFailed());
+        MergeSort mergeSort = new MergeSort(param);
+        mergeSort.start();
+        try (BufferedReader reader1 =
+                     Files.newBufferedReader(
+                             Path.of("src/main/resources/testOut2.txt"));
+             BufferedReader reader2 =
+                     Files.newBufferedReader(
+                             Path.of("src/main/resources/expected.txt")))
+        {
+            String result = reader1.readLine();
+            String expected = reader2.readLine();
+            while (expected!=null && result!=null){
+                assertThat(result, is(expected));
+                result = reader1.readLine();
+                expected = reader2.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try{
+            Files.deleteIfExists(Paths.get("src/main/resources/testOut2.txt"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

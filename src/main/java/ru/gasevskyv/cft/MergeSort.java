@@ -15,7 +15,7 @@ public class MergeSort {
     private boolean isDescending;
     private int size;
     private List<String> buffer;
-    private final int defaultBufferSize = 100;
+    private final int defaultBufferSize = 1000;
 
     public MergeSort(ArgsParser param) {
         this.typeInt = param.isTypeInt();
