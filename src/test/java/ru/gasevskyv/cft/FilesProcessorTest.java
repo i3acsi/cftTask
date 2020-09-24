@@ -20,10 +20,10 @@ public class FilesProcessorTest {
         processor = new FilesProcessor("src/main/resources/out.txt",
                 new String[]{"src/main/resources/in.txt"}, true);
         processor.writeToFile(list);
-        assertThat (processor.readReader(0), is ("1"));
-        assertThat (processor.readReader(0), is ("2"));
-        assertThat (processor.readReader(0), is ("3"));
-        assertThat (processor.readReader(0), is ("4"));
+        assertThat(processor.readReader(0), is("1"));
+        assertThat(processor.readReader(0), is("2"));
+        assertThat(processor.readReader(0), is("3"));
+        assertThat(processor.readReader(0), is("4"));
         try {
             Files.delete(Paths.get("src/main/resources/out.txt"));
         } catch (IOException e) {
@@ -37,14 +37,13 @@ public class FilesProcessorTest {
         processor = new FilesProcessor("src/main/resources/out1.txt",
                 new String[]{"src/main/resources/in2.txt"}, true);
         processor.writeToFile(list);
-        assertThat (processor.readReader(0), is ("3"));
-        assertThat (processor.readReader(0), is ("4"));
-        assertThat (processor.readReader(0), is ("45"));
+        assertThat(processor.readReader(0), is("3"));
+        assertThat(processor.readReader(0), is("4"));
+        assertThat(processor.readReader(0), is("45"));
         try {
             Files.delete(Paths.get("src/main/resources/out1.txt"));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 }

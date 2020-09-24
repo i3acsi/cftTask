@@ -1,31 +1,38 @@
 package ru.gasevskyv.cft;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ListIterator;
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  *
  */
 
-public class MergeSort {
+class MergeSort {
     private FilesProcessor processor;
     private boolean typeInt;
     private boolean isDescending;
     private int size;
     private List<String> buffer;
-    private final int defaultBufferSize = 1000;
+    private final int defaultBufferSize = 10;
 
-    public MergeSort(ArgsParser param) {
+    private Map<String, String> brokenBuffer;
+    private String fileTail;
+
+    MergeSort(ArgsParser param) {
         this.typeInt = param.isTypeInt();
         this.processor = new FilesProcessor(param.getOutFile(), param.getInFiles(), typeInt);
         this.isDescending = param.isDescending();
         this.size = param.getInFiles().length;
         this.buffer = new ArrayList<>(defaultBufferSize);
+        if (isDescending) {
+            this.brokenBuffer = new TreeMap<>(Collections.reverseOrder());
+        } else {
+            this.brokenBuffer = new TreeMap<>();
+        }
     }
 
-    public void start() {
+    void start() {
         String[] objects = new String[size];
         String[] emptyArray = new String[size];
 
@@ -33,7 +40,7 @@ public class MergeSort {
             objects[i] = processor.readReader(i);
         }
 
-        String tmp = null;
+        String tmp;
         while (!Arrays.equals(objects, emptyArray)) {
             int index = this.getElement(objects); // получаю элемент из временного списка - кондидат на включение
             tmp = processor.readReader(index); // получаю следующий за ним элеменнт
@@ -49,51 +56,71 @@ public class MergeSort {
             processor.writeToFile(this.buffer);
             this.buffer.clear();
         }
+        if (!brokenBuffer.isEmpty()) {
+            processor.setChannel();
+            try {
+                processor.putToOutFile(brokenBuffer, isDescending);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
-
-        // TODO: 17.09.2020 как будет вести себя программа, если сбросился буфер?
 
     private void writeToBuffer(String newLine) {
         if (buffer.size() >= defaultBufferSize) {
             processor.writeToFile(buffer);
+            this.fileTail = buffer.get(buffer.size() - 1);
             buffer.clear();
         }
         buffer.add(newLine);
-        // todo : в случае если все файлы кончились нужно очистить буфер
     }
 
     /**
      * If the order is broken than new line should be inserted in the correct position
-     * @param newLine
+     *
+     * @param newLine - new Line that should be add
      */
     private void orderingWriteToBuffer(String newLine) {
-        ListIterator<String> iterator = buffer.listIterator(buffer.size());
-        boolean eol = false;
-        while (!eol) {
-            int compare;
-            if (this.typeInt) {
-                compare = Integer.compare(Integer.parseInt(iterator.previous()), Integer.parseInt(newLine));
-            } else {
-                compare = iterator.previous().compareTo(newLine);
-            }
-            if (isDescending) {
-                if (compare >= 0) {
-                    iterator.next();
-                    iterator.add(newLine);
+        int compare = this.compare(this.fileTail, newLine); // сравниваю с поледней записью в файл
+        if (this.isOrdered(compare)) {
+            this.brokenBuffer.compute(newLine, (k, v) -> (v == null) ? k :
+                    (new StringBuilder(v)
+                            .append(System.lineSeparator())
+                            .append(k)
+                    ).toString());
+        } else {
+            ListIterator<String> iterator = buffer.listIterator(buffer.size());
+            boolean eol = false;
+            Consumer<String> addNewLine = x -> {
+                iterator.next();
+                iterator.add(x);
+            };
+            while (!eol) {
+                compare = this.compare(newLine, iterator.previous());
+                if (isOrdered(compare)) {
+                    addNewLine.accept(newLine);
                     break;
                 }
-            } else {
-                if (compare <= 0) {
-                    iterator.next();
+                if (!iterator.hasPrevious()) {
                     iterator.add(newLine);
-                    break;
+                    eol = true;
                 }
-            }
-            if (!iterator.hasPrevious()) {
-                iterator.add(newLine);
-                eol = true;
             }
         }
+    }
+
+    private int compare(String prev, String newLine) {
+        int result;
+        if (this.typeInt) {
+            result = Integer.compare(Integer.parseInt(prev), Integer.parseInt(newLine));
+        } else {
+            result = prev.compareTo(newLine);
+        }
+        return result;
+    }
+
+    private boolean isOrdered(int compareResult) { // есл D и порядок нарушен=> 1
+        return isDescending ? compareResult < 0 : compareResult > 0;
     }
 
     /**
@@ -111,7 +138,7 @@ public class MergeSort {
                 break;
             }
         }
-        int compare = 0;
+        int compare;
         int position = index++;
         for (; index < objects.length; index++) {
             if (objects[index] != null && tmp != null) {
@@ -132,9 +159,11 @@ public class MergeSort {
 
 
     /**
-     * Check that the items in the file are ordered.
-     * @param newLine
-     * @param prevLine
+     *
+     * Checks if a new line can be added without breaking the order.
+     *
+     * @param newLine - new line that sould be  add
+     * @param prevLine - the last value in the list to add
      */
     private boolean isRightOrder(String newLine, String prevLine) {
         if (newLine != null) {

@@ -7,12 +7,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 public class MergeSortTest {
     @Test
-    public void integerDescendingTest(){
+    public void integerDescendingTest() {
         String[] args = {"-d", "-i",
                 "src/main/resources/testOut.txt",
                 "src/main/resources/testIn.txt",
@@ -25,13 +26,12 @@ public class MergeSortTest {
         try (BufferedReader reader1 =
                      Files.newBufferedReader(
                              Path.of("src/main/resources/testOut.txt"));
-        BufferedReader reader2 =
-                Files.newBufferedReader(
-                        Path.of("src/main/resources/expected.txt")))
-        {
+             BufferedReader reader2 =
+                     Files.newBufferedReader(
+                             Path.of("src/main/resources/expected.txt"))) {
             String result = reader1.readLine();
             String expected = reader2.readLine();
-            while (expected!=null && result!=null){
+            while (expected != null && result != null) {
                 assertThat(result, is(expected));
                 result = reader1.readLine();
                 expected = reader2.readLine();
@@ -39,7 +39,7 @@ public class MergeSortTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        try{
+        try {
             Files.deleteIfExists(Paths.get("src/main/resources/testOut.txt"));
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,7 +47,7 @@ public class MergeSortTest {
     }
 
     @Test
-    public void stringAscendingTest(){
+    public void stringAscendingTest() {
         String[] args = {"-s",
                 "src/main/resources/textTestOut.txt",
                 "src/main/resources/textTestIn.txt",
@@ -62,11 +62,10 @@ public class MergeSortTest {
                              Path.of("src/main/resources/textTestOut.txt"));
              BufferedReader textReader2 =
                      Files.newBufferedReader(
-                             Path.of("src/main/resources/textExpected.txt")))
-        {
+                             Path.of("src/main/resources/textExpected.txt"))) {
             String result = textReader1.readLine();
             String expected = textReader2.readLine();
-            while (expected!=null && result!=null){
+            while (expected != null && result != null) {
                 assertThat(result, is(expected));
                 result = textReader1.readLine();
                 expected = textReader2.readLine();
@@ -74,7 +73,7 @@ public class MergeSortTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        try{
+        try {
             Files.deleteIfExists(Paths.get("src/main/resources/textTestOut.txt"));
         } catch (IOException e) {
             e.printStackTrace();
@@ -82,7 +81,7 @@ public class MergeSortTest {
     }
 
     @Test
-    public void integerDescendingTestWithSomeProblemsInFile(){
+    public void integerDescendingTestWithSomeProblemsInFile() {
         String[] args = {"-d", "-i",
                 "src/main/resources/testOut2.txt",
                 "src/main/resources/testIn.txt",
@@ -97,11 +96,10 @@ public class MergeSortTest {
                              Path.of("src/main/resources/testOut2.txt"));
              BufferedReader reader2 =
                      Files.newBufferedReader(
-                             Path.of("src/main/resources/expected.txt")))
-        {
+                             Path.of("src/main/resources/expected.txt"))) {
             String result = reader1.readLine();
             String expected = reader2.readLine();
-            while (expected!=null && result!=null){
+            while (expected != null && result != null) {
                 assertThat(result, is(expected));
                 result = reader1.readLine();
                 expected = reader2.readLine();
@@ -109,8 +107,42 @@ public class MergeSortTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        try{
+        try {
             Files.deleteIfExists(Paths.get("src/main/resources/testOut2.txt"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void stringDescendingTestWithSomeProblemsInFile() {
+        String[] args = {"-s", "-d",
+                "src/main/resources/bigTextTestOut.txt",
+                "src/main/resources/bigTextIn.txt",
+                "src/main/resources/bigTextIn2.txt",
+                "src/main/resources/bigTextInWithProblems.txt"};
+        ArgsParser param = new ArgsParser(args);
+        assert (!param.isFailed());
+        MergeSort mergeSort = new MergeSort(param);
+        mergeSort.start();
+        try (BufferedReader textReader1 =
+                     Files.newBufferedReader(
+                             Path.of("src/main/resources/bigTextTestOut.txt"));
+             BufferedReader textReader2 =
+                     Files.newBufferedReader(
+                             Path.of("src/main/resources/expectedBigTextDescending.txt"))) {
+            String result = textReader1.readLine();
+            String expected = textReader2.readLine();
+            while (expected != null && result != null) {
+                assertThat(result, is(expected));
+                result = textReader1.readLine();
+                expected = textReader2.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            Files.deleteIfExists(Paths.get("src/main/resources/bigTextTestOut.txt"));
         } catch (IOException e) {
             e.printStackTrace();
         }
